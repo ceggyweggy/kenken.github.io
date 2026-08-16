@@ -1,14 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-
-export default function NewPuzzleButton({ className }: { className?: string }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-
+export default function NewPuzzleButton({
+  className,
+  pending,
+  onClick,
+}: {
+  className?: string;
+  pending: boolean;
+  onClick: () => void;
+}) {
   return (
-    <button className={className} disabled={pending} onClick={() => startTransition(() => router.refresh())}>
+    <button className={className} disabled={pending} onClick={onClick}>
       {pending ? "Shuffling…" : "New puzzle"}
     </button>
   );
