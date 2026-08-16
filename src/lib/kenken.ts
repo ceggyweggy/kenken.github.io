@@ -1,5 +1,7 @@
 export type Op = "+" | "-" | "*" | "/" | null;
 
+export type Difficulty = "easy" | "medium" | "hard";
+
 export interface Clue {
   cells: [number, number][];
   op: Op;
@@ -65,19 +67,44 @@ function key(r: number, c: number, n: number): number {
   return r * n + c;
 }
 
-function generateCages(n: number): [number, number][][] {
-  let sizes: number[];
-  let weights: number[];
-  let singlesLeft: number;
-  if (n <= 6) {
-    sizes = [1, 2, 3, 4];
-    weights = [0.08, 0.45, 0.32, 0.15];
-    singlesLeft = 2;
-  } else {
-    sizes = [1, 2, 3, 4, 5];
-    weights = [0.05, 0.4, 0.3, 0.17, 0.08];
-    singlesLeft = 3;
+interface CageConfig {
+  sizes: number[];
+  weights: number[];
+  singlesLeft: number;
+}
+
+const HARD_SIZE_WEIGHT: Record<number, number> = {
+  2: 0.18,
+  3: 0.24,
+  4: 0.24,
+  5: 0.16,
+  6: 0.09,
+  7: 0.05,
+  8: 0.02,
+};
+
+function getCageConfig(n: number, difficulty: Difficulty): CageConfig {
+  if (difficulty === "easy") {
+    if (n <= 6) return { sizes: [1, 2, 3], weights: [0.22, 0.53, 0.25], singlesLeft: 3 };
+    return { sizes: [1, 2, 3, 4], weights: [0.18, 0.5, 0.22, 0.1], singlesLeft: 4 };
   }
+  if (difficulty === "hard") {
+    const maxSize = Math.min(n, 8);
+    const sizes = [1];
+    const weights = [0.02];
+    for (let s = 2; s <= maxSize; s++) {
+      sizes.push(s);
+      weights.push(HARD_SIZE_WEIGHT[s] ?? 0.02);
+    }
+    return { sizes, weights, singlesLeft: n <= 6 ? 1 : 2 };
+  }
+  if (n <= 6) return { sizes: [1, 2, 3, 4], weights: [0.08, 0.45, 0.32, 0.15], singlesLeft: 2 };
+  return { sizes: [1, 2, 3, 4, 5], weights: [0.05, 0.4, 0.3, 0.17, 0.08], singlesLeft: 3 };
+}
+
+function generateCages(n: number, difficulty: Difficulty): [number, number][][] {
+  const { sizes, weights, singlesLeft: initialSinglesLeft } = getCageConfig(n, difficulty);
+  let singlesLeft = initialSinglesLeft;
 
   const unassigned = new Set<number>();
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) unassigned.add(key(r, c, n));
@@ -190,11 +217,14 @@ function countSolutions(n: number, clues: Clue[], limit = 2, nodeBudget = 120_00
       }
       return true;
     }
+    const remaining = total - filled;
     if (op === "+") {
-      return filled === total ? cageSum[gi] === target : cageSum[gi] < target;
+      if (remaining === 0) return cageSum[gi] === target;
+      return cageSum[gi] + remaining <= target && cageSum[gi] + remaining * n >= target;
     }
     if (op === "*") {
-      return filled === total ? cageProd[gi] === target : cageProd[gi] <= target && target % cageProd[gi] === 0;
+      if (remaining === 0) return cageProd[gi] === target;
+      return cageProd[gi] <= target && target % cageProd[gi] === 0 && cageProd[gi] * n ** remaining >= target;
     }
     return true;
   }
@@ -203,10 +233,12 @@ function countSolutions(n: number, clues: Clue[], limit = 2, nodeBudget = 120_00
     return ~(rowUsed[r] | colUsed[c]);
   }
 
+  const relevantBits = ((1 << (n + 1)) - 1) & ~1;
+  const popcount = new Uint8Array(relevantBits + 1);
+  for (let m = 1; m <= relevantBits; m++) popcount[m] = popcount[m >> 1] + (m & 1);
+
   function countBits(mask: number): number {
-    let count = 0;
-    for (let v = 1; v <= n; v++) if (mask & (1 << v)) count += 1;
-    return count;
+    return popcount[mask & relevantBits];
   }
 
   function pickCell(): [number, number, number] | null {
@@ -274,16 +306,50 @@ function countSolutions(n: number, clues: Clue[], limit = 2, nodeBudget = 120_00
   return found;
 }
 
-export function generatePuzzle(n: number, maxCageAttempts = 60, maxSquareAttempts = 20): Puzzle {
+function tryGeneratePuzzle(
+  n: number,
+  difficulty: Difficulty,
+  maxCageAttempts: number,
+  maxSquareAttempts: number,
+  deadline: number
+): Puzzle | null {
   for (let i = 0; i < maxSquareAttempts; i++) {
+    if (Date.now() > deadline) return null;
     const solution = randomLatinSquare(n);
     for (let j = 0; j < maxCageAttempts; j++) {
-      const cages = generateCages(n);
+      if (Date.now() > deadline) return null;
+      const cages = generateCages(n, difficulty);
       const clues = assignClues(cages, solution);
       if (countSolutions(n, clues, 2) === 1) {
         return { size: n, clues, solution };
       }
     }
+  }
+  return null;
+}
+
+// Bigger cages prune less, so an unlucky layout can take a while to prove
+// unique. Give the requested difficulty a time budget, then fall back
+// toward easier (faster, tighter-pruning) tiers so a puzzle is always
+// returned promptly instead of the request hanging.
+const FALLBACK_TIERS: Record<Difficulty, Difficulty[]> = {
+  hard: ["hard", "medium", "easy"],
+  medium: ["medium", "easy"],
+  easy: ["easy"],
+};
+
+export function generatePuzzle(
+  n: number,
+  difficulty: Difficulty = "medium",
+  maxCageAttempts = 60,
+  maxSquareAttempts = 20
+): Puzzle {
+  const tiers = FALLBACK_TIERS[difficulty];
+  for (let t = 0; t < tiers.length; t++) {
+    const isLastTier = t === tiers.length - 1;
+    const deadline = isLastTier ? Infinity : Date.now() + 8000;
+    const result = tryGeneratePuzzle(n, tiers[t], maxCageAttempts, maxSquareAttempts, deadline);
+    if (result) return result;
   }
   throw new Error(`failed to generate a unique ${n}x${n} puzzle`);
 }

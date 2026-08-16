@@ -57,17 +57,6 @@
   border-radius: 12px;
   padding: 1.75rem;
   text-align: left;
-  transition: border-color 0.15s ease, transform 0.15s ease;
-}
-
-.sizeCard:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-}
-
-.sizeCard:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 3px;
 }
 
 .swatch {
@@ -106,11 +95,34 @@
   line-height: 1.5;
 }
 
-.cta {
+.difficulties {
+  display: flex;
+  gap: 0.5rem;
   margin-top: auto;
-  color: var(--accent);
+  flex-wrap: wrap;
+}
+
+.diffLink {
+  flex: 1;
+  min-width: 4.5rem;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--paper-edge);
+  color: var(--ink-soft);
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.diffLink:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.diffLink:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .multiplayer {
@@ -121,6 +133,15 @@
   font-size: 0.85rem;
   border-top: 1px solid var(--paper-edge);
   padding-top: 1.5rem;
+  transition: color 0.15s ease;
+}
+
+.multiplayer:hover {
+  color: var(--accent);
+}
+
+.multiplayer:hover b {
+  color: var(--accent);
 }
 
 .multiplayer b {

@@ -4,13 +4,19 @@ import styles from "./page.module.css";
 const SIZES = [
   {
     n: 6,
-    desc: "A shorter solve — good for a coffee break. Cages of 1 to 4 cells.",
+    desc: "A shorter solve — good for a coffee break.",
   },
   {
     n: 9,
     desc: "The full challenge — more cages, longer chains, bigger products.",
   },
 ];
+
+const DIFFICULTIES = [
+  { key: "easy", label: "Easy", desc: "More singles, cages capped at 3–4 cells." },
+  { key: "medium", label: "Medium", desc: "A balanced mix of cage sizes." },
+  { key: "hard", label: "Hard", desc: "Few singles, cages up to 7–8 cells." },
+] as const;
 
 export default function Home() {
   return (
@@ -28,7 +34,7 @@ export default function Home() {
 
       <div className={styles.sizes}>
         {SIZES.map(({ n, desc }) => (
-          <Link key={n} href={`/play/${n}`} className={styles.sizeCard}>
+          <div key={n} className={styles.sizeCard}>
             <div className={styles.swatch}>
               {Array.from({ length: n }).map((_, r) => (
                 <div key={r} className={styles.swatchRow} style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}>
@@ -42,17 +48,23 @@ export default function Home() {
               {n} &times; {n}
             </h2>
             <p className={styles.sizeDesc}>{desc}</p>
-            <span className={styles.cta}>Solve a puzzle &rarr;</span>
-          </Link>
+            <div className={styles.difficulties}>
+              {DIFFICULTIES.map(({ key, label, desc: diffDesc }) => (
+                <Link key={key} href={`/play/${n}?difficulty=${key}`} className={styles.diffLink} title={diffDesc}>
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
-      <p className={styles.multiplayer}>
-        <span className={styles.badge}>Coming soon</span>
+      <Link href="/multiplayer" className={styles.multiplayer}>
+        <span className={styles.badge}>New</span>
         <span>
           <b>Multiplayer</b> &mdash; race a friend to solve the same grid.
         </span>
-      </p>
+      </Link>
     </main>
   );
 }
