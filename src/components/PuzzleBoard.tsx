@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Puzzle } from "@/lib/kenken";
 import styles from "./PuzzleBoard.module.css";
 
 const OP_SYMBOL: Record<string, string> = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+
+function formatTime(totalSeconds: number) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 interface CellStyle {
   borderTop: string;
@@ -20,7 +26,16 @@ export default function PuzzleBoard({ puzzle }: { puzzle: Puzzle }) {
     Array.from({ length: n }, () => Array(n).fill(""))
   );
   const [status, setStatus] = useState<{ text: string; kind: "" | "ok" | "bad" }>({ text: "", kind: "" });
+  const [elapsed, setElapsed] = useState(0);
+  const [paused, setPaused] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
+  const solved = status.kind === "ok";
+
+  useEffect(() => {
+    if (paused || solved) return;
+    const id = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(id);
+  }, [paused, solved]);
 
   const { labelAt, cellStyle } = useMemo(() => {
     const cageOf = new Map<string, number>();
@@ -129,49 +144,67 @@ export default function PuzzleBoard({ puzzle }: { puzzle: Puzzle }) {
     setValues(Array.from({ length: n }, () => Array(n).fill("")));
     setMarks(Array.from({ length: n }, () => Array(n).fill("")));
     setStatus({ text: "", kind: "" });
+    setElapsed(0);
+    setPaused(false);
   }
 
   return (
     <div className={`${styles.board} ${n === 6 ? styles.size6 : styles.size9}`}>
-      <div className={styles.gridWrap}>
-        <div
-          ref={gridRef}
-          className={styles.grid}
-          style={{ gridTemplateColumns: `repeat(${n}, minmax(2.6rem, 3.4rem))`, maxWidth: `${n * 3.4}rem` }}
-        >
-          {cells.map(([r, c]) => {
-            const key = `${r},${c}`;
-            const label = labelAt.get(key);
-            const mark = marks[r][c];
-            return (
-              <div
-                key={key}
-                className={`${styles.cell} ${mark === "correct" ? styles.correct : ""} ${mark === "incorrect" ? styles.incorrect : ""}`}
-                style={cellStyle.get(key)}
-              >
-                {label && <span className={styles.clueLabel}>{label}</span>}
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  data-r={r}
-                  data-c={c}
-                  aria-label={`Row ${r + 1}, column ${c + 1}`}
-                  value={values[r][c]}
-                  onChange={(e) => updateCell(r, c, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(r, c, e)}
-                />
-              </div>
-            );
-          })}
-        </div>
+      <div className={styles.timerRow}>
+        <span className={styles.timer}>{formatTime(elapsed)}</span>
+        <button onClick={() => setPaused((p) => !p)} disabled={solved}>
+          {paused ? "Resume" : "Pause"}
+        </button>
       </div>
 
+      {paused ? (
+        <div className={styles.pausedOverlay}>
+          <p>Timer paused. Board hidden.</p>
+          <button className={styles.primary} onClick={() => setPaused(false)}>
+            Resume
+          </button>
+        </div>
+      ) : (
+        <div className={styles.gridWrap}>
+          <div
+            ref={gridRef}
+            className={styles.grid}
+            style={{ gridTemplateColumns: `repeat(${n}, minmax(2.6rem, 3.4rem))`, maxWidth: `${n * 3.4}rem` }}
+          >
+            {cells.map(([r, c]) => {
+              const key = `${r},${c}`;
+              const label = labelAt.get(key);
+              const mark = marks[r][c];
+              return (
+                <div
+                  key={key}
+                  className={`${styles.cell} ${mark === "correct" ? styles.correct : ""} ${mark === "incorrect" ? styles.incorrect : ""}`}
+                  style={cellStyle.get(key)}
+                >
+                  {label && <span className={styles.clueLabel}>{label}</span>}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    data-r={r}
+                    data-c={c}
+                    aria-label={`Row ${r + 1}, column ${c + 1}`}
+                    value={values[r][c]}
+                    onChange={(e) => updateCell(r, c, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(r, c, e)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className={styles.controls}>
-        <button className={styles.primary} onClick={check}>
+        <button className={styles.primary} onClick={check} disabled={paused}>
           Check
         </button>
-        <button onClick={reveal}>Reveal</button>
+        <button onClick={reveal} disabled={paused}>Reveal</button>
         <button onClick={reset}>Reset</button>
       </div>
 
