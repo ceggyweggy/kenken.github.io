@@ -1,0 +1,140 @@
+.page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.masthead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border-bottom: 1px solid var(--paper-edge);
+  padding-bottom: 1.4rem;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.masthead h1 {
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.rules {
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.rules b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.sizes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.sizeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 12px;
+  padding: 1.75rem;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.sizeCard:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.sizeCard:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.swatch {
+  display: grid;
+  gap: 3px;
+  width: fit-content;
+}
+
+.swatchRow {
+  display: grid;
+  gap: 3px;
+}
+
+.swatchCell {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  border: 1px solid var(--cage-line);
+}
+
+.sizeCard h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.sizeMeta {
+  color: var(--ink-faint);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sizeDesc {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.cta {
+  margin-top: auto;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.multiplayer {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--paper-edge);
+  padding-top: 1.5rem;
+}
+
+.multiplayer b {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-weight: 600;
+}

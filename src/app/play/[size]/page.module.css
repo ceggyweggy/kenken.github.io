@@ -1,0 +1,117 @@
+.page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.back {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.back:hover {
+  color: var(--accent);
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.title h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.title span {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.newPuzzle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 0.95rem;
+  border-radius: 6px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.newPuzzle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.newPuzzle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.boardWrap {
+  display: flex;
+  justify-content: center;
+}
+
+.skeleton {
+  width: fit-content;
+  max-width: 100%;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  align-items: center;
+}
+
+.skeletonGrid {
+  display: grid;
+  gap: 2px;
+  background: var(--grid-line);
+  border: 2.5px solid var(--cage-line);
+}
+
+.skeletonCell {
+  background: var(--paper);
+  aspect-ratio: 1 / 1;
+  width: 3rem;
+}
+
+.skeletonNote {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.skeleton {
+  animation: pulse 1.4s ease-in-out infinite;
+}
